@@ -7,19 +7,31 @@ public class HeroInputReader : MonoBehaviour
 
     private void Awake()
     {
-       
         if (_hero == null)
         {
             _hero = FindObjectOfType<Hero>();
         }
     }
 
-    public void OnHorizontalMovement(InputAction.CallbackContext context)
+    public void OnMovement(InputAction.CallbackContext context)
     {
-        
         if (_hero == null) return;
 
         Vector2 direction = context.ReadValue<Vector2>();
-        _hero.SetDurection(direction);
+        _hero.SetDirection(direction);
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (_hero == null) return;
+
+        if (context.performed) 
+        {
+            _hero.JumpPressed(); 
+        }
+        else if (context.canceled) 
+        {
+            _hero.JumpReleased();  
+        }
     }
 }
