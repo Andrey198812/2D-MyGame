@@ -34,4 +34,12 @@ public class HeroInputReader : MonoBehaviour
             _hero.JumpReleased();  
         }
     }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            _hero.Interact();
+        }
+    }
 }
