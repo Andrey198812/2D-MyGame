@@ -51,3 +51,6 @@ TagManager:
   - name: BackGround
     uniqueID: 189763013
     locked: 0
+  - name: New Layer 4
+    uniqueID: 1595158541
+    locked: 0

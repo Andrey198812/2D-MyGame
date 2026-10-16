@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 450156079358486157}
   - component: {fileID: -1011400849598102295}
   - component: {fileID: 5299979242382410735}
-  - component: {fileID: 3946072775467702533}
   m_Layer: 9
   m_Name: Helm
   m_TagString: Untagged
@@ -136,18 +135,6 @@ MonoBehaviour:
           m_StringArgument: interact
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: -4488252611725703101, guid: fc31178579e06f845981fb3cb294858e, type: 3}
-        m_TargetAssemblyTypeName: SwitchComponent, Assembly-CSharp
-        m_MethodName: Switch
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: interact
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!70 &5299979242382410735
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -183,15 +170,3 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1, y: 1}
   m_Direction: 0
---- !u!114 &3946072775467702533
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1602709490192950534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52da28c7d1056754f8474c1fa32be803, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
