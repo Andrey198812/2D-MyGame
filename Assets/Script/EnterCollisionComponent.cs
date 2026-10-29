@@ -9,18 +9,12 @@ public class EnterCollisionComponent : MonoBehaviour
     [SerializeField] private string _tag;
     [SerializeField] private UnityEvent<GameObject> _action;
 
-    private void OnCollisionEnter2D(Collision2D other)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (other.gameObject.CompareTag(_tag))
+        Debug.Log($"Шип столкнулся с: {collision.gameObject.name}, тег: {collision.gameObject.tag}");
+        if (collision.gameObject.CompareTag(_tag))
         {
-            _action?.Invoke(other.gameObject);
+            _action?.Invoke(collision.gameObject);
         }
-    }
-
-    [Serializable]
-
-    public class EnterEvent : UnityEvent<GameObject> 
-    { 
-    
     }
 }

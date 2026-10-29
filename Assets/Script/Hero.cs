@@ -1,5 +1,9 @@
+using Assets.Script;
+using System;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
+
 
 public class Hero : MonoBehaviour
 {
@@ -20,6 +24,11 @@ public class Hero : MonoBehaviour
     [SerializeField] private Transform _jumpSpawnPoint;
     [SerializeField] private GameObject _justDustPrefab;
     [SerializeField] private float _minFallSpeedForDust = 3f;
+    [SerializeField] private CheckCircleOverlap _attackRange;
+    [SerializeField] private int _damage;
+    [SerializeField] private RuntimeAnimatorController _armed;
+    [SerializeField] private RuntimeAnimatorController _disarmed;
+    [SerializeField] private Transform _attackPosition;
 
     private float _runTimer;
     private float _fallSpeedAtLanding;
@@ -29,26 +38,47 @@ public class Hero : MonoBehaviour
     private Animator _animator;
     private SpriteRenderer _sprite;
     private bool _wasGrounded;
-    private  PlayerScore _score;
-    private int coins;
-    
+    private PlayerScore _score;
+    private float _lastTakeDamageTime = 0f;
+
+    //private int coins;
+    // private bool _isArmed;
+
+    private GameSession _gameSession;
+
     private static readonly int isGroundKey = Animator.StringToHash("is_ground");
     private static readonly int isRunningKey = Animator.StringToHash("is_running");
     private static readonly int verticalVelocityKey = Animator.StringToHash("vertical_velocity");
     private static readonly int hitKey = Animator.StringToHash("hit");
+    private static readonly int attackKey = Animator.StringToHash("attack");
 
     private void Awake()
     {
-        
         _rigidbody = GetComponent<Rigidbody2D>();
         _rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
         _animator = GetComponent<Animator>();
         _sprite = GetComponent<SpriteRenderer>();
         _score = GetComponent<PlayerScore>();
-        coins = _score.TotalCoins;
+
+
+        _gameSession = FindObjectOfType<GameSession>();
+
+
+        if (_gameSession == null)
+        {
+            Debug.LogError("GameSession не найден на сцене!");
+        }
     }
 
-    
+
+    private void Start()
+    {
+        var health = GetComponent<HealthComponent>();
+        health.SetHealth(_gameSession.Data.Hp);
+        UpDateHeroWeapon();
+    }
+
+
     public void SetDirection(Vector2 direction)
     {
         _direction = direction;
@@ -96,7 +126,7 @@ public class Hero : MonoBehaviour
         {
             _isJumping = false;
         }
-        
+
 
         _animator.SetFloat(verticalVelocityKey, _rigidbody.velocity.y);
         _animator.SetBool(isRunningKey, _direction.x != 0);
@@ -119,7 +149,7 @@ public class Hero : MonoBehaviour
         {
             _runTimer += Time.fixedDeltaTime;
 
-            
+
             if (_runTimer >= _minRunTimeForDust)
             {
                 if (!_footStepAnimator.GetCurrentAnimatorStateInfo(0).IsName("Run"))
@@ -130,7 +160,7 @@ public class Hero : MonoBehaviour
         }
         else
         {
-            _runTimer = 0f;   
+            _runTimer = 0f;
 
             if (!_footStepAnimator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
@@ -146,12 +176,17 @@ public class Hero : MonoBehaviour
             _sprite.flipX = false;
             _footStepParticlesTransform.localPosition = new Vector3(-0.365f, -0.062f, 0);
             _footStepParticlesTransform.localScale = new Vector3(1, 1, 1);
+
+            if (_attackPosition != null)
+                _attackPosition.localPosition = new Vector3(0.8f, _attackPosition.localPosition.y, 0);
         }
         else if (_direction.x < 0)
         {
             _sprite.flipX = true;
             _footStepParticlesTransform.localPosition = new Vector3(0.365f, -0.062f, 0);
             _footStepParticlesTransform.localScale = new Vector3(-1, 1, 1);
+            if (_attackPosition != null)
+                _attackPosition.localPosition = new Vector3(-0.8f, _attackPosition.localPosition.y, 0);
         }
     }
 
@@ -176,26 +211,51 @@ public class Hero : MonoBehaviour
 
     public void takeDamage()
     {
-        
-        _animator.SetTrigger(hitKey);
-        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _damageJumpSpeed);
-        coins = _score.TotalCoins;
-        if (coins > 0) 
+
+        if (Time.time - _lastTakeDamageTime < 0.5f)
         {
-            SpawnCoins();
+
+            return;
         }
+        _lastTakeDamageTime = Time.time;
+        _animator.SetTrigger(hitKey);
+
+        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _damageJumpSpeed);
+        var session = FindObjectOfType<GameSession>();
+        if (session != null && session.Data.Hp <= 0)
+        {
+            return; 
+        }
+
+        SpawnCoins();
+
     }
 
     private void SpawnCoins()
     {
-        var numCoinsToDispose = Mathf.Min(coins, 5);
-        _score.RemoveCoins(numCoinsToDispose);
-        coins -= numCoinsToDispose;
+
+        var session = FindObjectOfType<GameSession>();
+        if (session == null)
+        {
+
+            return;
+        }
+        int randomCoins = UnityEngine.Random.Range(1, 6);
+        var numCoinsToDispose = Mathf.Min(_gameSession.Data.Coin, randomCoins);
+        if (numCoinsToDispose <= 0)
+        {
+
+            return;
+        }
+
+        _gameSession.Data.Coin -= numCoinsToDispose;
+        
         var burst = _hitParticles.emission.GetBurst(0);
         burst.count = numCoinsToDispose;
         _hitParticles.emission.SetBurst(0, burst);
         _hitParticles.gameObject.SetActive(true);
         _hitParticles.Play();
+        Debug.Log("9. Партиклы запущены!");
     }
 
     public void Interact()
@@ -219,4 +279,44 @@ public class Hero : MonoBehaviour
         }
     }
 
+    internal void Attack()
+    {
+        if (!_armed) return;
+        _animator.SetTrigger(attackKey);
+
+
+    }
+
+    public void InAttack()
+    {
+        var gos = _attackRange.GetObjectInRangee();
+        foreach (var go in gos)
+        {
+            var hp = go.GetComponent<HealthComponent>();
+            if (hp != null && go.CompareTag("Enemy"))
+            {
+                hp.ApplyDamage(_damage);
+            }
+        }
+    }
+
+    public void ArmHero()
+    {
+        _gameSession.Data.IsArmed = true;
+
+        UpDateHeroWeapon();
+    }
+
+    private void UpDateHeroWeapon()
+    {
+        if (_gameSession.Data.IsArmed)
+        {
+            _animator.runtimeAnimatorController = _armed;
+        }
+        else
+        {
+            _animator.runtimeAnimatorController = _disarmed;
+        }
+
+    }
 }

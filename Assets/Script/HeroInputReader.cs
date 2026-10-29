@@ -42,4 +42,12 @@ public class HeroInputReader : MonoBehaviour
             _hero.Interact();
         }
     }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            _hero.Attack();
+        }
+    }
 }
