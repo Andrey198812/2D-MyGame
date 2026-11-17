@@ -10,4 +10,7 @@ public class PlayerData
     public int Coin;
     public int Hp;
     public bool IsArmed;
+    public int SwordAmount;
+
+    
 }

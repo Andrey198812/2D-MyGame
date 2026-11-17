@@ -23,15 +23,16 @@ public class HeroInputReader : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (_hero == null) return;
+        Debug.Log($"<color=cyan>Input: {context.phase}</color>");
+        if (_hero == null) { Debug.LogError("В InputReader не назначен Hero!"); return; }
 
-        if (context.performed) 
+        if (context.performed)
         {
-            _hero.JumpPressed(); 
+            _hero.JumpPressed();
         }
-        else if (context.canceled) 
+        else if (context.canceled)
         {
-            _hero.JumpReleased();  
+            _hero.JumpReleased();
         }
     }
 
@@ -48,6 +49,18 @@ public class HeroInputReader : MonoBehaviour
         if (context.performed)
         {
             _hero.Attack();
+        }
+    }
+
+    public void OnThrow(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            _hero.StartThrow();
+        }
+        else if (context.canceled)
+        {
+            _hero.StopThrow();
         }
     }
 }

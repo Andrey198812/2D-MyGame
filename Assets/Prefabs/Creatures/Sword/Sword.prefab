@@ -158,16 +158,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tag: Player
+  _layer:
+    serializedVersion: 2
+    m_Bits: 4294967295
   _action:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7495086084859776379}
-        m_TargetAssemblyTypeName: Assets.Component.ArmHeroComponent, Assembly-CSharp
+      - m_Target: {fileID: 8385020318267721997, guid: 6031a13d75add6342981e6608ce98c54, type: 3}
+        m_TargetAssemblyTypeName: Hero, Assembly-CSharp
         m_MethodName: ArmHero
-        m_Mode: 2
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Assets.Script
 {
-    internal class CheckCircleOverlap : MonoBehaviour
+    public class CheckCircleOverlap : MonoBehaviour
     {
         [SerializeField] private float _radius = 1.0f;
        // [SerializeField] private string _tag;

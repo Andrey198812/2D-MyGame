@@ -1,94 +1,97 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using static System.Collections.Specialized.BitVector32;
+using System;
 
 public class HealthComponent : MonoBehaviour
 {
-    [SerializeField] private int _health = 1;
+    [Header("Events")]
     [SerializeField] private UnityEvent _onDamage;
     [SerializeField] private UnityEvent _onDie;
     [SerializeField] private UnityEvent _onHeal;
     [SerializeField] private HealthChangeEvent _onChange;
+
+    [Header("Settings")]
     [SerializeField] private int _maxHp = 5;
 
+    private int _health; 
     private bool _isDead;
-    private int CurrentHealth
+    private float _lastDamageTime = 0f;
+    private float _damageCooldown = 0.5f;
+
+    private void Start()
     {
-        get
-        {
-            var session = FindObjectOfType<GameSession>();
-            if (session != null) return session.Data.Hp;
-            return 0;
-        }
-        set
-        {
-            var session = FindObjectOfType<GameSession>();
-            if (session != null) session.Data.Hp = value;
-        }
+        _isDead = false;
+        _health = _maxHp;
+        _onChange?.Invoke(GetCurrentHealth());
     }
 
     public void ApplyDamage(int damageValue)
     {
-        Debug.Log($"1. Пришел урон: {damageValue}. _isDead = {_isDead}");
         if (_isDead) return;
+        if (Time.time - _lastDamageTime < _damageCooldown) return;
+        _lastDamageTime = Time.time;
 
-        if (gameObject.CompareTag("Player"))
+        var session = FindObjectOfType<GameSession>();
+
+        if (gameObject.CompareTag("Player")) 
         {
-            var session = FindObjectOfType<GameSession>();
             if (session != null)
             {
-                Debug.Log($"2. HP ДО: {session.Data.Hp}");
                 session.Data.Hp -= damageValue;
                 if (session.Data.Hp < 0) session.Data.Hp = 0;
-                Debug.Log($"3. HP ПОСЛЕ: {session.Data.Hp}");
 
-                if (session.Data.Hp <= 0) 
+                _onDamage?.Invoke();
+                _onChange?.Invoke(session.Data.Hp);
+
+                if (session.Data.Hp <= 0)
                 {
-                    Debug.Log("4. СМЕРТЬ! Вызываю OnDie");
-                    _isDead = true; _onDie?.Invoke();
-                    return;
+                    _isDead = true;
+                    _onDie?.Invoke();
                 }
             }
         }
-        else
+        else 
         {
             _health -= damageValue;
-            if (_health <= 0) { _isDead = true; _onDie?.Invoke();
-                return;
+            _onDamage?.Invoke();
+            _onChange?.Invoke(_health);
+
+            if (_health <= 0)
+            {
+                _isDead = true;
+                _onDie?.Invoke();
             }
         }
-
-        _onDamage?.Invoke();
-        return;
     }
 
     public void Heal(int healValue)
     {
         if (_isDead) return;
-
-        CurrentHealth += healValue;
-        if (CurrentHealth > _maxHp)
-            CurrentHealth = _maxHp;
-
-        _onHeal?.Invoke();
-        _onChange?.Invoke(CurrentHealth);
-     
-
-
-        Debug.Log($"Вылечено {healValue} очков здоровья! Здоровье: {_health}");
+        var session = FindObjectOfType<GameSession>();
+        if (session != null && gameObject.CompareTag("Player"))
+        {
+            session.Data.Hp += healValue;
+            if (session.Data.Hp > _maxHp) session.Data.Hp = _maxHp;
+            _onHeal?.Invoke();
+            _onChange?.Invoke(session.Data.Hp);
+        }
     }
 
     public void SetHealth(int health)
     {
-        CurrentHealth = health;
+        var session = FindObjectOfType<GameSession>();
+        if (session != null && gameObject.CompareTag("Player"))
+            session.Data.Hp = health;
+    }
+
+    private int GetCurrentHealth()
+    {
+        var session = FindObjectOfType<GameSession>();
+        if (session != null && gameObject.CompareTag("Player"))
+            return session.Data.Hp;
+        return _health; 
     }
 
     [Serializable]
-    public class HealthChangeEvent : UnityEvent<int>
-    {
-
-    }
+    public class HealthChangeEvent : UnityEvent<int> { }
 }

@@ -1,43 +1,55 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class ReloadComponent : MonoBehaviour
 {
-    
-    private int _starCoin;
-    private int _starHp;
-    private bool _startIsArmed;
-    private bool _isRestarting = false;
-    public void Start()
+   
+    private static int _checkPointHp = 0;
+    private static int _checkPointCoins = 0;
+    private static bool _checkPointArmed = false;
+    private static bool _isCheckPointSaved = false;
+    private void Awake()
+    {
+        Debug.Log("<color=orange>ReloadComponent: Awake сработал!</color>");
+    }
+    private void Start()
     {
         var session = FindObjectOfType<GameSession>();
 
         if (session != null)
         {
-            _starCoin = session.Data.Coin;
-            _starHp = session.Data.Hp;
-            _startIsArmed = session.Data.IsArmed;
-            Debug.Log($"Старт уровня сохранен: НР = {_starHp}, Coin = {_starCoin}");
-          
+        
+            if (!_isCheckPointSaved)
+            {
+                _checkPointHp = session.Data.Hp;
+                _checkPointCoins = session.Data.Coin;
+                _checkPointArmed = session.Data.IsArmed;
+                _isCheckPointSaved = true;
+                
+            }
+            else
+            {
+             
+                session.Data.Hp = _checkPointHp;
+                session.Data.Coin = _checkPointCoins;
+                session.Data.IsArmed = _checkPointArmed;
+            }
         }
+      
     }
 
     public void ReloadLevel()
     {
-        Debug.Log($"!!! RELOAD: возвращаю Coin = {_starCoin}, HP = {_starHp}");
-        _isRestarting = true;
-        var session = FindObjectOfType<GameSession>();
+        Debug.Log("<color=red>ReloadLevel ВЫЗВАН!</color>");
 
-        if (session != null) 
-        {
-            session.Data.Coin = _starCoin;
-            session.Data.Hp = _starHp;
-            session.Data.IsArmed = _startIsArmed;
-        }
+       
+        Invoke(nameof(LoadSceneDelayed), 0.1f);
+    }
 
+    private void LoadSceneDelayed()
+    {
+       
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-
+       
     }
 }
