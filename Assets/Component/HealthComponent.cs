@@ -28,7 +28,10 @@ public class HealthComponent : MonoBehaviour
     public void ApplyDamage(int damageValue)
     {
         if (_isDead) return;
-        if (Time.time - _lastDamageTime < _damageCooldown) return;
+        if (gameObject.CompareTag("Player"))
+        {
+            if (Time.time - _lastDamageTime < _damageCooldown) return;
+        }
         _lastDamageTime = Time.time;
 
         var session = FindObjectOfType<GameSession>();
